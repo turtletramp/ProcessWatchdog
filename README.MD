@@ -12,4 +12,4 @@ The intended use case is whenever a Windows Service cannot be used for whatever 
 - Monitors processes listed in a config file
 - Restarts processes if they exit
 - Supports multiple processes
-- Reads config at start from working directory `ProcessWatchdog.config.json`
+- Reads config at start, first trying to read from %appdata% and second if not found from working directory `ProcessWatchdog.config.json`

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Serilog;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace org.danzl.ProcessWatchdog
@@ -15,17 +16,17 @@ namespace org.danzl.ProcessWatchdog
 			{
 				if (Directory.Exists(workingDirectory) == false)
 				{
-					Console.WriteLine($"workingDirectory '{workingDirectory}' does not exist");
+					Log.Error($"workingDirectory '{workingDirectory}' does not exist");
 					return false;
 				}
 				if (string.IsNullOrEmpty(executablePath))
 				{
-					Console.WriteLine("executable is not set");
+					Log.Error("executable is not set");
 					return false;
 				}
 				if (!File.Exists(executablePath))
 				{
-					Console.WriteLine($"Executable '{executablePath}' does not exist");
+					Log.Error($"Executable '{executablePath}' does not exist");
 					return false;
 				}
 				return true;
@@ -38,7 +39,7 @@ namespace org.danzl.ProcessWatchdog
 		{
 			if (processes == null || processes.Length == 0)
 			{
-				Console.WriteLine("No processes defined in config");
+				Log.Error("No processes defined in config");
 				return false;
 			}
 			foreach (var process in processes)
@@ -56,10 +57,17 @@ namespace org.danzl.ProcessWatchdog
     {
 		static ProcessWatchdogConfig _config { get; set; }
 
+		public static string AppDataFolder { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "danzl.org", "ProcessWatchdog");
+
 		public static bool LoadConfig()
 		{
-			// search for the ProcessWatchdog.config in the current directory
-			string configPath = Path.Combine(Directory.GetCurrentDirectory(), "ProcessWatchdog.config.json");
+			// search for the config in our app data folder
+			string configPath = Path.Combine(AppDataFolder, "ProcessWatchdog.config.json"); 
+			if (!File.Exists(configPath))
+			{
+				// search for the ProcessWatchdog.config in the current directory
+				configPath = Path.Combine(Directory.GetCurrentDirectory(), "ProcessWatchdog.config.json");
+			}
 			if (File.Exists(configPath))
 			{
 				string json = File.ReadAllText(configPath);
@@ -67,18 +75,18 @@ namespace org.danzl.ProcessWatchdog
 
 				if (_config.IsValid())
 				{
-					Console.WriteLine("Config loaded successfully from " + configPath);
+					Log.Error("Config loaded successfully from " + configPath);
 					return true;
 				}
 				else
 				{
-					Console.WriteLine("Config is not valid");
+					Log.Error("Config is not valid");
 					return false;
 				}
 			}
 			else
 			{
-				Console.WriteLine("ProcessWatchdog.config not found at '{configPath}'");
+				Log.Error("ProcessWatchdog.config not found at '{configPath}'");
 				return false;
 			}
 		}
@@ -117,13 +125,38 @@ namespace org.danzl.ProcessWatchdog
 				}
 			}
 
+
+
+#if DEBUG
+			// Debug mode: log to debug output
+			Log.Logger = new LoggerConfiguration()
+				.MinimumLevel.Verbose()
+				.WriteTo.Debug()
+				.CreateLogger();
+#endif
+#if RELEASE
+			Log.Logger = new LoggerConfiguration()
+				.MinimumLevel.Verbose()
+				.WriteTo.File(
+					Path.Combine(AppDataFolder, "processwatchdog.log"),
+					rollingInterval: RollingInterval.Day,
+					rollOnFileSizeLimit: true,
+					fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
+					shared: true)
+				.WriteTo.Debug()
+				.CreateLogger();
+#endif
 			if (!LoadConfig())
 			{
-				Console.WriteLine("Failed to load config. Exiting...");
+				if (Win.IsWindows())
+				{
+					Win.ShowMessage("Failed to load config. See " + AppDataFolder + " for further details. Exiting...", "ERROR");
+				}
+				Log.Error("Failed to load config. Exiting...");
 				return 1;
 			}
 
-			Console.WriteLine("Starting process watchdog...");
+			Log.Information("Starting process watchdog...");
 			foreach (var pi in _config.processes)
 			{
 				Launch(pi);
@@ -140,10 +173,11 @@ namespace org.danzl.ProcessWatchdog
 			process.EnableRaisingEvents = true;
 			process.Exited += (sender, e) =>
 			{
-				Console.WriteLine($"Process '{pi.executablePath}' exited with code {process.ExitCode} --> restarting");
+				Log.Warning($"Process '{pi.executablePath}' PID {process.Id} exited with code {process.ExitCode} --> restarting");
 				Launch(pi);
 			};
 			process.Start();
+			Log.Information($"Process '{pi.executablePath}' started with PID {process.Id}");
 		}
 	}
 }
