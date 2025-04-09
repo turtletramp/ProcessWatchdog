@@ -13,6 +13,8 @@ namespace org.danzl.ProcessWatchdog
 			public string executablePath { get; set; }
 			public string arguments { get; set; }
 
+			public bool hideShellWindow { get; set; }
+
 			public bool IsValid()
 			{
 				if (Directory.Exists(workingDirectory) == false)
@@ -56,6 +58,8 @@ namespace org.danzl.ProcessWatchdog
 
 	public class Program
     {
+		public static readonly string ProcessWatchdogConfFile = "ProcessWatchdog.config.json";
+
 		static ProcessWatchdogConfig _config { get; set; }
 
 		public static string AppDataFolder { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "danzl.org", "ProcessWatchdog");
@@ -63,11 +67,11 @@ namespace org.danzl.ProcessWatchdog
 		public static bool LoadConfig()
 		{
 			// search for the config in our app data folder
-			string configPath = Path.Combine(AppDataFolder, "ProcessWatchdog.config.json"); 
+			string configPath = Path.Combine(AppDataFolder, ProcessWatchdogConfFile); 
 			if (!File.Exists(configPath))
 			{
 				// search for the ProcessWatchdog.config in the current directory
-				configPath = Path.Combine(Directory.GetCurrentDirectory(), "ProcessWatchdog.config.json");
+				configPath = Path.Combine(Directory.GetCurrentDirectory(), ProcessWatchdogConfFile);
 			}
 			if (File.Exists(configPath))
 			{
@@ -107,8 +111,8 @@ namespace org.danzl.ProcessWatchdog
 						sb.Append("Usage: ProcessWatchdog\n");
 						sb.Append("Options:\n");
 						sb.Append("  -h, --help, /?, /help, help  Show this help message\n");
-						sb.Append("  defaultconfig                Writes the empty default config to stdout\n");
-						sb.Append("The config file is named ProcessWatchdog.config.json and must be in the working directory set for the ProcessWatchdog.\n");
+						sb.Append("  defaultconfig                Writes the empty default config to " + ProcessWatchdogConfFile + " in current directory\n");
+						sb.Append("The config file is named  " + ProcessWatchdogConfFile + " and must be in the working directory set for the ProcessWatchdog.\n");
 						if (Win.IsWindows())
 						{
 							Win.ShowMessage(sb.ToString(), "ProcessWatchdog Help");
@@ -119,7 +123,7 @@ namespace org.danzl.ProcessWatchdog
 						}
 						return 0;
 					case "defaultconfig":
-						Console.WriteLine(JsonSerializer.Serialize<ProcessWatchdogConfig>(new ProcessWatchdogConfig()
+						var defaultConf = JsonSerializer.Serialize<ProcessWatchdogConfig>(new ProcessWatchdogConfig()
 						{
 							processes = new ProcessWatchdogConfig.ProcessWatchdogInfo[]
 							{
@@ -127,10 +131,13 @@ namespace org.danzl.ProcessWatchdog
 								{
 									workingDirectory = ".",
 									executablePath = "",
-									arguments = ""
+									arguments = "",
+									hideShellWindow = false
 								}
 							}
-						}, new JsonSerializerOptions { WriteIndented = true }));
+						}, new JsonSerializerOptions { WriteIndented = true });
+						// write it to current directory
+						File.WriteAllBytes(ProcessWatchdogConfFile, Encoding.UTF8.GetBytes(defaultConf));
 						return 0;
 				}
 			}
@@ -140,7 +147,7 @@ namespace org.danzl.ProcessWatchdog
 #if DEBUG
 			// Debug mode: log to debug output
 			Log.Logger = new LoggerConfiguration()
-				.MinimumLevel.Verbose()
+				.MinimumLevel.Verbose() 
 				.WriteTo.Debug()
 				.CreateLogger();
 #endif
@@ -180,6 +187,11 @@ namespace org.danzl.ProcessWatchdog
 			process.StartInfo.FileName = pi.executablePath;
 			process.StartInfo.WorkingDirectory = pi.workingDirectory;
 			process.StartInfo.Arguments = pi.arguments;
+			if (pi.hideShellWindow)
+			{
+				process.StartInfo.UseShellExecute = false;
+				process.StartInfo.CreateNoWindow = true;
+			}
 			process.EnableRaisingEvents = true;
 			process.Exited += (sender, e) =>
 			{
