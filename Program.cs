@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 
 namespace org.danzl.ProcessWatchdog
@@ -102,11 +103,20 @@ namespace org.danzl.ProcessWatchdog
 					case "/?":
 					case "/help":
 					case "help":
-						Console.WriteLine("Usage: ProcessWatchdog");
-						Console.WriteLine("Options:");
-						Console.WriteLine("  -h, --help, /?, /help, help  Show this help message");
-						Console.WriteLine("  defaultconfig                Writes the empty default config to stdout");
-						Console.WriteLine("The config file is named ProcessWatchdog.config.json and must be in the working directory set for the ProcessWatchdog.");
+						StringBuilder sb = new StringBuilder();
+						sb.Append("Usage: ProcessWatchdog\n");
+						sb.Append("Options:\n");
+						sb.Append("  -h, --help, /?, /help, help  Show this help message\n");
+						sb.Append("  defaultconfig                Writes the empty default config to stdout\n");
+						sb.Append("The config file is named ProcessWatchdog.config.json and must be in the working directory set for the ProcessWatchdog.\n");
+						if (Win.IsWindows())
+						{
+							Win.ShowMessage(sb.ToString(), "ProcessWatchdog Help");
+						}
+						else
+						{
+							Console.WriteLine(sb.ToString());
+						}
 						return 0;
 					case "defaultconfig":
 						Console.WriteLine(JsonSerializer.Serialize<ProcessWatchdogConfig>(new ProcessWatchdogConfig()
