@@ -9,8 +9,8 @@
     <RootNamespace>org.danzl.ProcessWatchdog</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="ProcessWatchdog.config.json">
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <Content Include="ProcessWatchdog.config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
