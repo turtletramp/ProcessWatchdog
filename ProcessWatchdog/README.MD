@@ -13,3 +13,11 @@ The intended use case is whenever a Windows Service cannot be used for whatever 
 - Restarts processes if they exit
 - Supports multiple processes
 - Reads config at start, first trying to read from %appdata% and second if not found from working directory `ProcessWatchdog.config.json`
+
+## Tags supported in paths in the config
+
+- {{Home}} - Replaced with the home directory of the user running the process
+- {{ProgramFiles}} - Replaced with the Program Files directory of the user running the process
+- {{ProgramFilesX86}} - Replaced with the Program Files (x86) directory of the user running the process
+- {{AppData}} - Replaced with the AppData directory of the user running the process
+- 

@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156 d17.13
+VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessWatchdog", "ProcessWatchdog.csproj", "{868D835B-D248-4B8B-88B1-054630B9EA8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessWatchdogTest", "ProcessWatchdogTest\ProcessWatchdogTest.csproj", "{4E225C6F-04FA-4422-BA0E-4992F58A3709}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessWatchdog", "ProcessWatchdog\ProcessWatchdog.csproj", "{3E5607CD-6E02-E8DE-DBFF-597AFD526692}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{868D835B-D248-4B8B-88B1-054630B9EA8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{868D835B-D248-4B8B-88B1-054630B9EA8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{868D835B-D248-4B8B-88B1-054630B9EA8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{868D835B-D248-4B8B-88B1-054630B9EA8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E225C6F-04FA-4422-BA0E-4992F58A3709}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E225C6F-04FA-4422-BA0E-4992F58A3709}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E225C6F-04FA-4422-BA0E-4992F58A3709}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E225C6F-04FA-4422-BA0E-4992F58A3709}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E5607CD-6E02-E8DE-DBFF-597AFD526692}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E5607CD-6E02-E8DE-DBFF-597AFD526692}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E5607CD-6E02-E8DE-DBFF-597AFD526692}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E5607CD-6E02-E8DE-DBFF-597AFD526692}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

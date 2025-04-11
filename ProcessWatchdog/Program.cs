@@ -1,5 +1,7 @@
 ﻿using Serilog;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 
@@ -64,6 +66,49 @@ namespace org.danzl.ProcessWatchdog
 
 		public static string AppDataFolder { get; private set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "danzl.org", "ProcessWatchdog");
 
+		public static string ProcessPath(string path)
+		{
+			// if it is a relative path, make it absolute
+			if (path == null || path == ".")
+			{
+				path = Directory.GetCurrentDirectory();
+			}
+			else if (path.StartsWith("."))
+			{
+				path = path.Substring(1);
+				if (path.StartsWith("\\"))
+					path = path.Substring(1);
+				path = Path.Combine(Directory.GetCurrentDirectory(), path);
+			}
+			
+			// replace {{ProgramFiles}} with the actual ProgramFiles path
+			if (path.Contains("{{ProgramFiles}}"))
+			{
+				path = path.Replace("{{ProgramFiles}}", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles));
+			}
+			// replace {{ProgramFilesX86}} with the actual ProgramFiles path
+			if (path.Contains("{{ProgramFilesX86}}"))
+			{
+				path = path.Replace("{{ProgramFilesX86}}", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86));
+			}
+			// replace {{AppData}} with the actual AppData path
+			if (path.Contains("{{AppData}}"))
+			{
+				path = path.Replace("{{AppData}}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+			}
+			// replace {{Home}} with the actual Home path
+			if (path.Contains("{{Home}}"))
+			{
+				path = path.Replace("{{Home}}", Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+			}
+
+			if (!Path.IsPathRooted(path))
+			{
+				path = Path.GetFullPath(path);
+			}
+
+			return path;
+		}
 		public static bool LoadConfig()
 		{
 			// search for the config in our app data folder
@@ -77,6 +122,13 @@ namespace org.danzl.ProcessWatchdog
 			{
 				string json = File.ReadAllText(configPath);
 				_config = System.Text.Json.JsonSerializer.Deserialize<ProcessWatchdogConfig>(json);
+
+				// check the paths in the config and replace placeholders
+				foreach (var process in _config.processes)
+				{
+					process.workingDirectory = ProcessPath(process.workingDirectory);
+					process.executablePath = ProcessPath(process.executablePath);
+				}
 
 				if (_config.IsValid())
 				{

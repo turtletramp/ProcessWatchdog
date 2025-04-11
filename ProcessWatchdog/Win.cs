@@ -1,6 +1,6 @@
 ﻿namespace org.danzl.ProcessWatchdog
 {
-    class Win
+    public class Win
     {
         public static bool IsWindows()
 		{
