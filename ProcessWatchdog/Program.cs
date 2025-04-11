@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -115,8 +116,16 @@ namespace org.danzl.ProcessWatchdog
 			string configPath = Path.Combine(AppDataFolder, ProcessWatchdogConfFile); 
 			if (!File.Exists(configPath))
 			{
+				Log.Information($"Config not found in {configPath} - searching in current directory and executable directory");
 				// search for the ProcessWatchdog.config in the current directory
 				configPath = Path.Combine(Directory.GetCurrentDirectory(), ProcessWatchdogConfFile);
+
+				if (!File.Exists(configPath))
+				{
+					Log.Information($"Config not found in {configPath} directory - searching in executable directory");
+					// search in the executable directory
+					configPath = Path.Combine(Assembly.GetExecutingAssembly().Location, ProcessWatchdogConfFile);
+				}
 			}
 			if (File.Exists(configPath))
 			{
